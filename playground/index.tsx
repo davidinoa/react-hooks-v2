@@ -5,6 +5,13 @@ import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
 function App() {
 	const [query, setQuery] = useState('')
 
+	// 🐨 make a function called handleCheck that accepts a "tag" string and a "checked" boolean
+	// 🐨 By calling setQuery, add the tag to the query if checked and remove it if not
+	function handleCheck(tag: string, checked: boolean) {
+		const newQuery = checked ? query + ' ' + tag : query.replace(tag, '').trim()
+		setQuery(newQuery)
+	}
+
 	return (
 		<div className="app">
 			<form>
@@ -14,18 +21,37 @@ function App() {
 						id="searchInput"
 						name="query"
 						type="search"
-						onChange={event => setQuery(event.currentTarget.value)}
+						value={query}
+						onChange={e => setQuery(e.currentTarget.value)}
 					/>
 				</div>
 				<div>
 					<label>
-						<input type="checkbox" /> 🐶 dog
+						<input
+							type="checkbox"
+							onChange={event =>
+								handleCheck('dog', event.currentTarget.checked)
+							}
+						/>{' '}
+						🐶 dog
 					</label>
 					<label>
-						<input type="checkbox" /> 🐱 cat
+						<input
+							type="checkbox"
+							onChange={event =>
+								handleCheck('cat', event.currentTarget.checked)
+							}
+						/>{' '}
+						🐱 cat
 					</label>
 					<label>
-						<input type="checkbox" /> 🐛 caterpillar
+						<input
+							type="checkbox"
+							onChange={event =>
+								handleCheck('caterpillar', event.currentTarget.checked)
+							}
+						/>{' '}
+						🐛 caterpillar
 					</label>
 				</div>
 				<button type="submit">Submit</button>
