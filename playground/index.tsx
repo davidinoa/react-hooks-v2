@@ -4,12 +4,14 @@ import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
 
 function App() {
 	const [query, setQuery] = useState('')
+	const words = query.split(' ')
+	const dogChecked = words.includes('dog')
+	const catChecked = words.includes('cat')
+	const caterpillarChecked = words.includes('caterpillar')
 
-	// 🐨 make a function called handleCheck that accepts a "tag" string and a "checked" boolean
-	// 🐨 By calling setQuery, add the tag to the query if checked and remove it if not
 	function handleCheck(tag: string, checked: boolean) {
-		const newQuery = checked ? query + ' ' + tag : query.replace(tag, '').trim()
-		setQuery(newQuery)
+		const newWords = checked ? [...words, tag] : words.filter(w => w !== tag)
+		setQuery(newWords.filter(Boolean).join(' ').trim())
 	}
 
 	return (
@@ -29,26 +31,25 @@ function App() {
 					<label>
 						<input
 							type="checkbox"
-							onChange={event =>
-								handleCheck('dog', event.currentTarget.checked)
-							}
+							checked={dogChecked}
+							onChange={e => handleCheck('dog', e.currentTarget.checked)}
 						/>{' '}
 						🐶 dog
 					</label>
 					<label>
 						<input
 							type="checkbox"
-							onChange={event =>
-								handleCheck('cat', event.currentTarget.checked)
-							}
+							checked={catChecked}
+							onChange={e => handleCheck('cat', e.currentTarget.checked)}
 						/>{' '}
 						🐱 cat
 					</label>
 					<label>
 						<input
 							type="checkbox"
-							onChange={event =>
-								handleCheck('caterpillar', event.currentTarget.checked)
+							checked={caterpillarChecked}
+							onChange={e =>
+								handleCheck('caterpillar', e.currentTarget.checked)
 							}
 						/>{' '}
 						🐛 caterpillar

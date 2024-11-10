@@ -1,17 +1,72 @@
-# Controlling Inputs
+# Derive State
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/controlling-inputs" />
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/derive-state" />
 
-👨‍💼 When the user clicks on one of the checkboxes, we want to auto-fill that
-value into the search input for them. This means we need to "control" the input
-value so we can set it programmatically. We can do this by using the `value`
-prop on the input.
+🦉 Often, it can be easy to think you need to keep track of two elements of
+state when you really only need one. For example, let's say you have a counter
+that will display the number of times a user has clicked a button and also it
+will display whether that number is odd or even. You might be tempted to write
+the following code:
 
-📜 You can read up more on this in the React docs:
-[Controlling an input with a state variable](https://react.dev/reference/react-dom/components/input#controlling-an-input-with-a-state-variable)
+```tsx
+import { useState } from 'react'
 
-Once we add the query as the value for the input, we'll also want to have a
-function responsible for updating the query when the user checks or unchecks the
-checkboxes and call that in the `onChange` handler of the checkboxes.
+export default function Counter() {
+	const [count, setCount] = useState(0)
+	const [isEven, setIsEven] = useState(true)
 
-Good luck!
+	function handleClick() {
+		const newCount = count + 1
+		setCount(newCount)
+		setIsEven(newCount % 2 === 0)
+	}
+
+	return (
+		<div>
+			<p>{count}</p>
+			<p>{isEven ? 'Even' : 'Odd'}</p>
+			<button onClick={handleClick}>Increment</button>
+		</div>
+	)
+}
+```
+
+This code works, but it's not ideal because it's keeping track of two pieces of
+state when it only needs to keep track of one. Imagine if we had multiple places
+where the count could be changed. We'd have to remember to update the `isEven`
+state in all of those places. This is a recipe for bugs.
+
+Instead, we can derive the `isEven` state from the `count` state:
+
+```tsx
+import { useState } from 'react'
+
+export default function Counter() {
+	const [count, setCount] = useState(0)
+
+	function handleClick() {
+		const newCount = count + 1
+		setCount(newCount)
+	}
+
+	// this is the derived state
+	const isEven = count % 2 === 0
+
+	return (
+		<div>
+			<p>{count}</p>
+			<p>{isEven ? 'Even' : 'Odd'}</p>
+			<button onClick={handleClick}>Increment</button>
+		</div>
+	)
+}
+```
+
+This is a much better solution because we only have to keep track of the `count`
+state. The `isEven` state is derived from the `count` state. This means we don't
+have to worry about keeping the `isEven` state in sync with the `count` state.
+
+👨‍💼 Thanks Olivia! So what we want to do in this step is derive the checkboxes'
+`checked` state based on whether the query contains the word they represent.
+
+Give that a shot.
