@@ -3,8 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
 
 function App() {
-	const [query, setQuery] = useState('')
+	const params = new URLSearchParams(window.location.search)
+	const initialQuery = params.get('query') ?? ''
+	const [query, setQuery] = useState(initialQuery)
 	const words = query.split(' ')
+
 	const dogChecked = words.includes('dog')
 	const catChecked = words.includes('cat')
 	const caterpillarChecked = words.includes('caterpillar')
