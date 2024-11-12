@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
 
-function App() {
+function getQueryParam() {
 	const params = new URLSearchParams(window.location.search)
 	const initialQuery = params.get('query') ?? ''
-	const [query, setQuery] = useState(initialQuery)
+	return initialQuery
+}
+
+function App() {
+	const [query, setQuery] = useState(getQueryParam)
 	const words = query.split(' ')
 
 	const dogChecked = words.includes('dog')
