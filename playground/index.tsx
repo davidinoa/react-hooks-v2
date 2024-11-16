@@ -1,20 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { generateGradient, getMatchingPosts } from '#shared/blog-posts'
+import { setGlobalSearchParams } from '#shared/utils'
 
 function getQueryParam() {
 	const params = new URLSearchParams(window.location.search)
-	const initialQuery = params.get('query') ?? ''
-	return initialQuery
+	return params.get('query') ?? ''
 }
 
 function App() {
 	const [query, setQuery] = useState(getQueryParam)
+
 	const words = query.split(' ')
 
 	const dogChecked = words.includes('dog')
 	const catChecked = words.includes('cat')
 	const caterpillarChecked = words.includes('caterpillar')
+
+	useEffect(() => {
+		const handler = () => setQuery(getQueryParam)
+		window.addEventListener('popstate', handler)
+		return () => window.removeEventListener('popstate', handler)
+	}, [])
 
 	function handleCheck(tag: string, checked: boolean) {
 		const newWords = checked ? [...words, tag] : words.filter(w => w !== tag)
@@ -23,7 +30,7 @@ function App() {
 
 	return (
 		<div className="app">
-			<form>
+			<form action={() => setGlobalSearchParams({ query })}>
 				<div>
 					<label htmlFor="searchInput">Search:</label>
 					<input

@@ -1,53 +1,63 @@
-# Init Callback
+# useEffect
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/init-callback" />
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/useeffect" />
 
-🦉 There's one more thing you should know about `useState` initialization and
-that is a small performance optimization. `useState` can accept a function.
+👨‍💼 We want the query to update as the query params change through a
+[`popstate`](https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event)
+event. Once you added the `useEffect` hook, you then have to prevent the default
+full refresh of the page when the user clicks the back/forward button.
 
-You may recall from earlier we mentioned that the first argument to `useState`
-is only used during the initial render. It's not used on subsequent renders.
-This is because the initial value is only used when the component is first
-rendered. After that, the value is managed by React and you use the updater
-function to update it.
+🧝‍♂️ I added a new utility called `setGlobalSearchParams` which allows us to set
+the URL search params without triggering a full-page refresh. So whenever the
+user clicks "submit," we update the URL search params. The trouble is, when they
+hit the back button, the search doesn't stay synchronized with the URL (yet).
 
-But imagine a situation where calculating that initial value were
-computationally expensive. It would be a waste to compute the initial value for
-all but the initial render right? That's where the function form of `useState`
-comes in.
+You can take a look at <DiffLink app1={-1} app2={0}>my changes</DiffLink> for
+details on what I did.
 
-Let's imagine we have a function that calculates the initial value and it's
-computationally expensive:
+👨‍💼 Thanks Kellie. So what we want you to do is make it so when the user hits the
+back button in their browser and the search params are updated, we update the input
+value.
+
+The only way to be notified of a back/forward event is to listen for the
+`popstate` event. You can do this by adding an event listener to the `window`
+object.
 
 ```tsx
-const [val, setVal] = useState(calculateInitialValue())
+window.addEventListener('popstate', () => {
+	// update the input value
+})
 ```
 
-This will work just fine, but it's not ideal. The `calculateInitialValue` will
-be called on every render, even though it's only needed for the initial render.
-So instead of calling the function, we can just pass it:
+To test whether you got this right follow these steps:
+
+- Go to <LinkToApp to="/?query=dog" /> (in a new tab)
+- Add " cat" in the input
+- Click "submit"
+- Click the back button in your browser
+- The input value should now be "dog"
+
+That last step will be broken and that's what you should fix in this step.
+
+<callout-warning class="aside">
+	Spoiler alert: there's going to be a bug with our implementation that we'll
+	fix in the next step, so if you notice a bug... we'll get to it 😅
+</callout-warning>
+
+One more thing, we're going to need to retrieve the query param in two places.
+Right now we get it to initialize our state, but we'll also want to get it when
+the `popstate` event fires. So you'll be extracting that logic to a small
+function and we'll pass that as a function to our `useState` (using the lazy
+initializer as before).
+
+In our case the performance difference is so small it's not really worth it, but
+since we're making a function anyway, you can simply pass the function to
+`useState` directly:
 
 ```tsx
-const [val, setVal] = useState(calculateInitialValue)
-```
-
-Typically doing this is unnecessary, but it's good to know about in case you
-need it.
-
-So
-
-```tsx
-// This will call getQueryParam on every render, undermining our optimization! 😵
+// both of these work just fine:
 const [query, setQuery] = useState(getQueryParam())
-
-// This will _only_ call getQueryParam on init. Great! ✅
 const [query, setQuery] = useState(getQueryParam)
 ```
 
 You're going to be making the `getQueryParam` function. Got it? Great, let's go!
-
-<callout-info>
-	🚨 Note, we can't reasonably test whether you're doing this right so the tests
-	are passing from the get-go, but you'll know you didn't break anything if the
-	tests are still working when you're finished.
-</callout-info>
