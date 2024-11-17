@@ -18,9 +18,18 @@ function App() {
 	const caterpillarChecked = words.includes('caterpillar')
 
 	useEffect(() => {
-		const handler = () => setQuery(getQueryParam)
-		window.addEventListener('popstate', handler)
-		return () => window.removeEventListener('popstate', handler)
+		const hugeData = new Array(1_000_000).fill(
+			new Array(1_000_000).fill('🐶🐱🐛'),
+		)
+
+		function handlePopState() {
+			console.log(hugeData)
+			console.log('popstate event listener called')
+			setQuery(getQueryParam)
+		}
+
+		window.addEventListener('popstate', handlePopState)
+		return () => window.removeEventListener('popstate', handlePopState)
 	}, [])
 
 	function handleCheck(tag: string, checked: boolean) {
@@ -103,6 +112,24 @@ function MatchingPosts({ query }: { query: string }) {
 	)
 }
 
+function DemoApp() {
+	const [showForm, setShowForm] = useState(true)
+
+	return (
+		<div>
+			<label>
+				<input
+					type="checkbox"
+					checked={showForm}
+					onChange={e => setShowForm(e.currentTarget.checked)}
+				/>{' '}
+				show form
+			</label>
+			{showForm ? <App /> : null}
+		</div>
+	)
+}
+
 const rootEl = document.createElement('div')
 document.body.append(rootEl)
-createRoot(rootEl).render(<App />)
+createRoot(rootEl).render(<DemoApp />)
