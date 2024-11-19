@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	type BlogPost,
@@ -14,6 +14,7 @@ function getQueryParam() {
 
 function App() {
 	const [query, setQuery] = useState(getQueryParam)
+
 	useEffect(() => {
 		const updateQuery = () => setQuery(getQueryParam())
 		window.addEventListener('popstate', updateQuery)
@@ -35,7 +36,7 @@ function Form({
 	setQuery,
 }: {
 	query: string
-	setQuery: Dispatch<SetStateAction<string>>
+	setQuery: (query: string) => void
 }) {
 	const words = query.split(' ').map(w => w.trim())
 
@@ -93,31 +94,54 @@ function Form({
 
 function MatchingPosts({ query }: { query: string }) {
 	const matchingPosts = getMatchingPosts(query)
+	const [favorites, setFavorites] = useState<string[]>([])
 
 	return (
 		<ul className="post-list">
 			{matchingPosts
-				.sort((a, b) => a.title.localeCompare(b.title))
+				.sort((a, b) => {
+					const aFav = favorites.includes(a.id)
+					const bFav = favorites.includes(b.id)
+					return aFav === bFav ? 0 : aFav ? -1 : 1
+				})
 				.map(post => (
-					<Card key={post.id} post={post} />
+					<Card
+						key={post.id}
+						post={post}
+						isFavorited={favorites.includes(post.id)}
+						onFavoriteClick={isFavorited => {
+							setFavorites(prev =>
+								isFavorited
+									? [...prev, post.id]
+									: prev.filter(id => id !== post.id),
+							)
+						}}
+					/>
 				))}
 		</ul>
 	)
 }
 
-function Card({ post }: { post: BlogPost }) {
-	const [isFavorited, setIsFavorited] = useState(false)
+function Card({
+	post,
+	isFavorited,
+	onFavoriteClick,
+}: {
+	post: BlogPost
+	isFavorited: boolean
+	onFavoriteClick: (isFavorited: boolean) => void
+}) {
 	return (
 		<li>
 			{isFavorited ? (
 				<button
 					aria-label="Remove favorite"
-					onClick={() => setIsFavorited(false)}
+					onClick={() => onFavoriteClick(false)}
 				>
 					❤️
 				</button>
 			) : (
-				<button aria-label="Add favorite" onClick={() => setIsFavorited(true)}>
+				<button aria-label="Add favorite" onClick={() => onFavoriteClick(true)}>
 					🤍
 				</button>
 			)}
