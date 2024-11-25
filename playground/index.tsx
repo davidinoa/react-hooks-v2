@@ -1,141 +1,52 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import {
-	type BlogPost,
-	generateGradient,
-	getMatchingPosts,
-} from '#shared/blog-posts'
-import { setGlobalSearchParams } from '#shared/utils'
+import VanillaTilt from 'vanilla-tilt'
 
-function getQueryParam() {
-	const params = new URLSearchParams(window.location.search)
-	return params.get('query') ?? ''
+interface HTMLVanillaTiltElement extends HTMLDivElement {
+	vanillaTilt?: VanillaTilt
 }
 
-function App() {
-	const [query, setQuery] = useState(getQueryParam)
+const vanillaTiltOptions = {
+	max: 25,
+	speed: 400,
+	glare: true,
+	'max-glare': 0.5,
+}
 
-	useEffect(() => {
-		const updateQuery = () => setQuery(getQueryParam())
-		window.addEventListener('popstate', updateQuery)
-		return () => {
-			window.removeEventListener('popstate', updateQuery)
-		}
-	}, [])
-
+function Tilt({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="app">
-			<Form query={query} setQuery={setQuery} />
-			<MatchingPosts query={query} />
+		<div
+			className="tilt-root"
+			ref={(tiltNode: HTMLVanillaTiltElement | null) => {
+				if (!tiltNode) return
+				VanillaTilt.init(tiltNode, vanillaTiltOptions)
+				return () => tiltNode.vanillaTilt?.destroy()
+			}}
+		>
+			<div className="tilt-child">{children}</div>
 		</div>
 	)
 }
 
-function Form({
-	query,
-	setQuery,
-}: {
-	query: string
-	setQuery: (query: string) => void
-}) {
-	const words = query.split(' ').map(w => w.trim())
-
-	const dogChecked = words.includes('dog')
-	const catChecked = words.includes('cat')
-	const caterpillarChecked = words.includes('caterpillar')
-
-	function handleCheck(tag: string, checked: boolean) {
-		const newWords = checked ? [...words, tag] : words.filter(w => w !== tag)
-		setQuery(newWords.filter(Boolean).join(' ').trim())
-	}
-
+function App() {
+	const [showTilt, setShowTilt] = useState(true)
+	const [count, setCount] = useState(0)
 	return (
-		<form action={() => setGlobalSearchParams({ query })}>
-			<div>
-				<label htmlFor="searchInput">Search:</label>
-				<input
-					id="searchInput"
-					name="query"
-					type="search"
-					value={query}
-					onChange={e => setQuery(e.currentTarget.value)}
-				/>
-			</div>
-			<div>
-				<label>
-					<input
-						type="checkbox"
-						checked={dogChecked}
-						onChange={e => handleCheck('dog', e.currentTarget.checked)}
-					/>{' '}
-					🐶 dog
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={catChecked}
-						onChange={e => handleCheck('cat', e.currentTarget.checked)}
-					/>{' '}
-					🐱 cat
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={caterpillarChecked}
-						onChange={e => handleCheck('caterpillar', e.currentTarget.checked)}
-					/>{' '}
-					🐛 caterpillar
-				</label>
-			</div>
-			<button type="submit">Submit</button>
-		</form>
-	)
-}
-
-function MatchingPosts({ query }: { query: string }) {
-	const matchingPosts = getMatchingPosts(query)
-
-	return (
-		<ul className="post-list">
-			{matchingPosts.map(post => (
-				<Card key={post.id} post={post} />
-			))}
-		</ul>
-	)
-}
-
-function Card({ post }: { post: BlogPost }) {
-	const [isFavorited, setIsFavorited] = useState(false)
-
-	return (
-		<li>
-			{isFavorited ? (
-				<button
-					aria-label="Remove favorite"
-					onClick={() => setIsFavorited(false)}
-				>
-					❤️
-				</button>
-			) : (
-				<button aria-label="Add favorite" onClick={() => setIsFavorited(true)}>
-					🤍
-				</button>
-			)}
-			<div
-				className="post-image"
-				style={{ background: generateGradient(post.id) }}
-			/>
-			<a
-				href={post.id}
-				onClick={event => {
-					event.preventDefault()
-					alert(`Great! Let's go to ${post.id}!`)
-				}}
-			>
-				<h2>{post.title}</h2>
-				<p>{post.description}</p>
-			</a>
-		</li>
+		<div>
+			<button onClick={() => setShowTilt(s => !s)}>Toggle Visibility</button>
+			{showTilt ? (
+				<Tilt>
+					<div className="totally-centered">
+						<button
+							className="count-button"
+							onClick={() => setCount(c => c + 1)}
+						>
+							{count}
+						</button>
+					</div>
+				</Tilt>
+			) : null}
+		</div>
 	)
 }
 
