@@ -19,23 +19,23 @@ function Tilt({
 	glare?: boolean
 	maxGlare?: number
 }) {
-	const tiltRef = useRef<HTMLVanillaTiltElement | null>(null)
-
-	const vanillaTiltOptions = {
-		max,
-		speed,
-		glare,
-		'max-glare': maxGlare,
-	}
+	const tiltRef = useRef<HTMLVanillaTiltElement>(null)
 
 	useEffect(() => {
-		if (!tiltRef.current) return
-		VanillaTilt.init(tiltRef.current, vanillaTiltOptions)
-		return () => tiltRef.current?.vanillaTilt?.destroy()
-	}, [vanillaTiltOptions])
+		const { current: tiltNode } = tiltRef
+		if (!tiltNode) return
+		const vanillaTiltOptions = {
+			max,
+			speed,
+			glare,
+			'max-glare': maxGlare,
+		}
+		VanillaTilt.init(tiltNode, vanillaTiltOptions)
+		return () => tiltNode.vanillaTilt?.destroy()
+	}, [glare, max, maxGlare, speed])
 
 	return (
-		<div className="tilt-root" ref={tiltRef}>
+		<div ref={tiltRef} className="tilt-root">
 			<div className="tilt-child">{children}</div>
 		</div>
 	)
@@ -111,10 +111,3 @@ function App() {
 const rootEl = document.createElement('div')
 document.body.append(rootEl)
 createRoot(rootEl).render(<App />)
-
-// 🤫 we'll fix this in the next step!
-// (ALMOST) NEVER DISABLE THIS LINT RULE IN REAL LIFE!
-/*
-eslint
-	react-hooks/exhaustive-deps: "off",
-*/

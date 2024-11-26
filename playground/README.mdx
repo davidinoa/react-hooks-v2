@@ -1,57 +1,36 @@
-# Dependencies
+# Primitive Dependencies
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/dependencies" />
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/primitive-dependencies" />
 
-👨‍💼 Our users wanted to be able to control `vanilla-tilt` a bit. Some of them
-like the speed and glare to look different. So Kellie 🧝‍♂️ added a form that will
-allow them to control those values. This is working great, but something we
-noticed is the tilt effect is getting reset whenever you click the count button!
+👨‍💼 Our users are annoyed. Whenever they click the incrementing button in the
+middle, the tilt effect is reset. You can reproduce this more easily by clicking
+one of the corners of the button.
 
-🦉 The reason this happens is because the ref callback is called every time the
-component is rendered (and the cleanup runs between renders). So we're
-re-initializing the tilt effect on every render.
+Moving things into a `useEffect` was supposed to help this because we can be
+explicit about which dependencies trigger the `cleanup` and effect to be run
+again. But we're still having the problem.
 
-👨‍💼 This is inefficient and it's a jarring experience if the user clicks on the
-corner of the count button. We want the effect to only re-initialize when the
-options change.
+If you add a `console.log` to the `useEffect`, you'll notice that it runs even
+when the button is clicked, even if the actual options are unchanged. The reason
+is because the `options` object actually _did_ change! This is because the
+`options` object is a new object every time the component renders. This is
+because of the way we're using the `...` spread operator to collect the options
+into a single (brand new) object. This means that the dependency array will
+always be different and the effect will always run!
 
-The trick is we want the effect to re-initialize when the `vanillaTiltOptions`
-change, but nothing else. So we can use `useEffect` to do that:
+`useEffect` iterates through each of our dependencies and checks whether they
+have changed and it uses `Object.is` to do so (this is effectively the same
+as `===`). This means that even if two objects have the same properties, they
+will not be considered equal if they are different objects.
 
 ```tsx
-useEffect(
-	() => {
-		// set up stuff
-		return function cleanup() {
-			// clean up stuff
-		}
-	},
-	// depend on stuff:
-	[],
-)
+const options1 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
+const options2 = { glare: true, max: 25, 'max-glare': 0.5, speed: 400 }
+Object.is(options1, options2) // false!!
 ```
 
-🦉 React needs to know when it needs to run your effect callback function again.
-We do this using the dependency array which is the second argument to
-`useEffect`. Whenever values in that array changes, React will call the returned
-cleanup function and then invoke the effect callback again.
+So the easiest way to fix this is by switching from using an object to using the
+primitive values directly. This way, the dependency array will only change when
+the actual values change.
 
-By default, if you don't provide a second argument, `useEffect` runs after every
-render (similar to what we're currently experiencing with the `ref` callback).
-While this is probably the right default for correctness, it's far from optimal
-in most `useEffect` cases. If you're not careful, it's easy to end up with
-infinite loops (imagine if you're calling `setState` in the effect which
-triggers another render, which calls the effect, which calls `setState` and so
-on).
-
-👨‍💼 So what we need to do in this step is move our `ref` callback stuff to
-`useEffect`, create a `useRef` so we can access the DOM node in the `useEffect`
-callback, and let React know that our effect callback depends on the
-`vanillaTiltOptions` the user is providing. Let's do that by passing the
-`vanillaTiltOptions` in the dependency array.
-
-<callout-warning class="aside">
-	You'll notice an issue when you've finished this step. If you click the button
-	to increment the count, the tilt effect is still reset! We'll fix this in the
-	next step.
-</callout-warning>
+So please update the `useEffect` to use the primitive values directly. Thanks!
