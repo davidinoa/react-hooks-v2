@@ -1,6 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import VanillaTilt from 'vanilla-tilt'
+
+function Field({
+	label,
+	id,
+	...inputProps
+}: {
+	label: string
+} & React.ComponentProps<'input'>) {
+	const generatedId = useId()
+	id ??= generatedId
+	return (
+		<div>
+			<label htmlFor={id}>{label}</label>
+			<input {...inputProps} id={id} />
+		</div>
+	)
+}
 
 interface HTMLVanillaTiltElement extends HTMLDivElement {
 	vanillaTilt?: VanillaTilt
@@ -42,7 +59,6 @@ function Tilt({
 }
 
 function App() {
-	const [showTilt, setShowTilt] = useState(true)
 	const [count, setCount] = useState(0)
 	const [options, setOptions] = useState({
 		max: 25,
@@ -51,59 +67,42 @@ function App() {
 		maxGlare: 0.5,
 	})
 	return (
-		<div>
-			<button onClick={() => setShowTilt(s => !s)}>Toggle Visibility</button>
-			{showTilt ? (
-				<div className="app">
-					<form
-						onSubmit={e => e.preventDefault()}
-						onChange={event => {
-							const formData = new FormData(event.currentTarget)
-							setOptions({
-								max: Number(formData.get('max')),
-								speed: Number(formData.get('speed')),
-								glare: formData.get('glare') === 'on',
-								maxGlare: Number(formData.get('maxGlare')),
-							})
-						}}
-					>
-						<div>
-							<label htmlFor="max">Max:</label>
-							<input id="max" name="max" type="number" defaultValue={25} />
-						</div>
-						<div>
-							<label htmlFor="speed">Speed:</label>
-							<input id="speed" name="speed" type="number" defaultValue={400} />
-						</div>
-						<div>
-							<label>
-								<input id="glare" name="glare" type="checkbox" defaultChecked />
-								Glare
-							</label>
-						</div>
-						<div>
-							<label htmlFor="maxGlare">Max Glare:</label>
-							<input
-								id="maxGlare"
-								name="maxGlare"
-								type="number"
-								defaultValue={0.5}
-							/>
-						</div>
-					</form>
-					<br />
-					<Tilt {...options}>
-						<div className="totally-centered">
-							<button
-								className="count-button"
-								onClick={() => setCount(c => c + 1)}
-							>
-								{count}
-							</button>
-						</div>
-					</Tilt>
+		<div className="app">
+			<form
+				onSubmit={e => e.preventDefault()}
+				onChange={event => {
+					const formData = new FormData(event.currentTarget)
+					setOptions({
+						max: Number(formData.get('max')),
+						speed: Number(formData.get('speed')),
+						glare: formData.get('glare') === 'on',
+						maxGlare: Number(formData.get('maxGlare')),
+					})
+				}}
+			>
+				<Field label="Max" name="max" type="number" defaultValue={25} />
+				<Field label="Speed" name="speed" type="number" defaultValue={400} />
+				<div>
+					<label>
+						<input name="glare" type="checkbox" defaultChecked />
+						Glare
+					</label>
 				</div>
-			) : null}
+				<Field
+					label="Max Glare"
+					name="maxGlare"
+					type="number"
+					defaultValue={0.5}
+				/>
+			</form>
+			<br />
+			<Tilt {...options}>
+				<div className="totally-centered">
+					<button className="count-button" onClick={() => setCount(c => c + 1)}>
+						{count}
+					</button>
+				</div>
+			</Tilt>
 		</div>
 	)
 }
