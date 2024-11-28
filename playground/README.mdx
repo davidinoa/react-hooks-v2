@@ -1,23 +1,64 @@
-# useId
+# setState callback
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/useid" />
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/setstate-callback" />
 
-🧝‍♂️ I've made a few changes to our `vanilla-tilt` app to try and make a reusable
-`Field` component. But there's a problem. When I try to click on the label for
-a field, it doesn't focus the input. This is because we're missing an `id`.
+👨‍💼 Our users want to play tic-tac-toe.
 
-I don't want to just use the `name` attribute as the `id` because I don't want
-to run the risk of having multiple elements with the same `id` on the page if
-we render multiple `Field` components with the same `name`. And I don't want to
-have to pass in an `id` prop every time I use the `Field` component. Though, if
-they do pass an `id` we should use the `id` they passed instead of a generated
-one (maybe they want a very specific `id` for some reason and we should support
-both!).
+<callout-info class="aside">
+	If you've gone through React's official tutorial, this was originally lifted
+	from that.
+</callout-info>
 
-As usual, you can <DiffLink app1={-1} app2={0}>check my work</DiffLink> if you like.
+You're going to need some managed state and some derived state. Remember from
+exercise 1:
 
-👨‍💼 So your job is to fix the label association. You'll notice that the checkbox
-is working as expected already because it's not using the `Field` component due
-to its unique structure.
+- **Managed State:** State that you need to explicitly manage
+- **Derived State:** State that you can calculate based on other state
 
-So, let's handle the `id` in the `Field` component.
+`squares` is the managed state and it's the state of the board in a
+single-dimensional array:
+
+```
+[
+  'X', 'O', 'X',
+  'X', 'O', 'O',
+  'X', 'X', 'O'
+]
+```
+
+This will start out as an empty array because it's the start of the game.
+
+`nextValue` will be either the string `X` or `O` and is derived state which you
+can determine based on the value of `squares`. We can determine whose turn it is
+based on how many "X" and "O" squares there are. We've written this out for you
+in a `calculateNextValue` function in the `tic-tac-toe-utils.tsx` file.
+
+`winner` will be either the string `X` or `O` and is derived state which can
+also be determined based on the value of `squares` and we've provided a
+`calculateWinner` function you can use to get that value.
+
+If you want to try this exercise on beast mode then you can ignore
+`calculateNextValue` and `calculateWinner` and write your own version of those
+utilities.
+
+Another important thing you'll need to do for this step of the exercise is to
+use the callback version of `setState` to ensure that the state is updated
+correctly. This is because the state is updated based on the previous state and
+you want to make sure that you're always using the most up-to-date state.
+
+```tsx
+setCount(currentCount => {
+	return currentCount + 1
+})
+```
+
+Finally, something you need to know about state in React is it's important that
+you not mutate state directly. So instead of setting `squares[0] = 'X'` you will
+need to make a copy of the array with the modifications, for example, using
+[`with`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/with):
+
+```tsx
+const newSquares = squares.with(index, 'X')
+```
+
+The emoji should guide you well! Enjoy the exercise!

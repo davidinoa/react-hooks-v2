@@ -1,108 +1,70 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import VanillaTilt from 'vanilla-tilt'
+import {
+	calculateNextValue,
+	calculateStatus,
+	calculateWinner,
+	type Squares,
+} from '#shared/tic-tac-toe-utils'
 
-function Field({
-	label,
-	id,
-	...inputProps
-}: {
-	label: string
-} & React.ComponentProps<'input'>) {
-	const generatedId = useId()
-	id ??= generatedId
+const defaultState = Array(9).fill(null)
+
+function Board() {
+	const [squares, setSquares] = useState<Squares>(defaultState)
+	const nextValue = calculateNextValue(squares)
+	const winner = calculateWinner(squares)
+	const status = calculateStatus(winner, squares, nextValue)
+
+	function selectSquare(index: number) {
+		if (winner || squares[index]) return
+		const nextSquares = squares.with(index, nextValue)
+		setSquares(nextSquares)
+		return nextSquares
+	}
+
+	function restart() {
+		setSquares(defaultState)
+	}
+
+	function renderSquare(i: number) {
+		return (
+			<button className="square" onClick={() => selectSquare(i)}>
+				{squares[i]}
+			</button>
+		)
+	}
+
 	return (
 		<div>
-			<label htmlFor={id}>{label}</label>
-			<input {...inputProps} id={id} />
-		</div>
-	)
-}
-
-interface HTMLVanillaTiltElement extends HTMLDivElement {
-	vanillaTilt?: VanillaTilt
-}
-
-function Tilt({
-	children,
-	max = 25,
-	speed = 400,
-	glare = true,
-	maxGlare = 0.5,
-}: {
-	children: React.ReactNode
-	max?: number
-	speed?: number
-	glare?: boolean
-	maxGlare?: number
-}) {
-	const tiltRef = useRef<HTMLVanillaTiltElement>(null)
-
-	useEffect(() => {
-		const { current: tiltNode } = tiltRef
-		if (!tiltNode) return
-		const vanillaTiltOptions = {
-			max,
-			speed,
-			glare,
-			'max-glare': maxGlare,
-		}
-		VanillaTilt.init(tiltNode, vanillaTiltOptions)
-		return () => tiltNode.vanillaTilt?.destroy()
-	}, [glare, max, maxGlare, speed])
-
-	return (
-		<div ref={tiltRef} className="tilt-root">
-			<div className="tilt-child">{children}</div>
+			<div className="status">{status}</div>
+			<div className="board-row">
+				{renderSquare(0)}
+				{renderSquare(1)}
+				{renderSquare(2)}
+			</div>
+			<div className="board-row">
+				{renderSquare(3)}
+				{renderSquare(4)}
+				{renderSquare(5)}
+			</div>
+			<div className="board-row">
+				{renderSquare(6)}
+				{renderSquare(7)}
+				{renderSquare(8)}
+			</div>
+			<button className="restart" onClick={restart}>
+				restart
+			</button>
 		</div>
 	)
 }
 
 function App() {
-	const [count, setCount] = useState(0)
-	const [options, setOptions] = useState({
-		max: 25,
-		speed: 400,
-		glare: true,
-		maxGlare: 0.5,
-	})
 	return (
-		<div className="app">
-			<form
-				onSubmit={e => e.preventDefault()}
-				onChange={event => {
-					const formData = new FormData(event.currentTarget)
-					setOptions({
-						max: Number(formData.get('max')),
-						speed: Number(formData.get('speed')),
-						glare: formData.get('glare') === 'on',
-						maxGlare: Number(formData.get('maxGlare')),
-					})
-				}}
-			>
-				<Field label="Max" name="max" type="number" defaultValue={25} />
-				<Field label="Speed" name="speed" type="number" defaultValue={400} />
-				<div>
-					<label>
-						<input name="glare" type="checkbox" defaultChecked />
-						Glare
-					</label>
-				</div>
-				<Field
-					label="Max Glare"
-					name="maxGlare"
-					type="number"
-					defaultValue={0.5}
-				/>
-			</form>
-			<br />
-			<Tilt {...options}>
-				<div className="totally-centered">
-					<button className="count-button" onClick={() => setCount(c => c + 1)}>
-						{count}
-					</button>
-				</div>
-			</Tilt>
+		<div className="game">
+			<div className="game-board">
+				<Board />
+			</div>
 		</div>
 	)
 }
