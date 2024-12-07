@@ -1,64 +1,22 @@
-# setState callback
+# Preserve State in localStorage
 
-<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/setstate-callback" />
+<EpicVideo url="https://www.epicreact.dev/workshops/react-hooks/preserve-state-in-localstorage" />
 
-👨‍💼 Our users want to play tic-tac-toe.
+👨‍💼 Our customers want to be able to close the tab in the middle of a game and
+then resume the game later. Can you store the game's state in `localStorage`?
 
-<callout-info class="aside">
-	If you've gone through React's official tutorial, this was originally lifted
-	from that.
-</callout-info>
+I think you can! You're going to need to use `useEffect` to coordinate things
+with `localStorage`. Luckily for us, `localStorage` is synchronous, so
+initializing our state from `localStorage` is straightforward (you should
+definitely use the callback form of `useState` for initialization though!).
 
-You're going to need some managed state and some derived state. Remember from
-exercise 1:
+For keeping the squares up-to-date in `localStorage`, you'll want to use
+`useEffect` with a dependency array that includes the squares.
 
-- **Managed State:** State that you need to explicitly manage
-- **Derived State:** State that you can calculate based on other state
+📜 If you need to learn a bit about the `localStorage` API, you can check out the
+[MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
 
-`squares` is the managed state and it's the state of the board in a
-single-dimensional array:
-
-```
-[
-  'X', 'O', 'X',
-  'X', 'O', 'O',
-  'X', 'X', 'O'
-]
-```
-
-This will start out as an empty array because it's the start of the game.
-
-`nextValue` will be either the string `X` or `O` and is derived state which you
-can determine based on the value of `squares`. We can determine whose turn it is
-based on how many "X" and "O" squares there are. We've written this out for you
-in a `calculateNextValue` function in the `tic-tac-toe-utils.tsx` file.
-
-`winner` will be either the string `X` or `O` and is derived state which can
-also be determined based on the value of `squares` and we've provided a
-`calculateWinner` function you can use to get that value.
-
-If you want to try this exercise on beast mode then you can ignore
-`calculateNextValue` and `calculateWinner` and write your own version of those
-utilities.
-
-Another important thing you'll need to do for this step of the exercise is to
-use the callback version of `setState` to ensure that the state is updated
-correctly. This is because the state is updated based on the previous state and
-you want to make sure that you're always using the most up-to-date state.
-
-```tsx
-setCount(currentCount => {
-	return currentCount + 1
-})
-```
-
-Finally, something you need to know about state in React is it's important that
-you not mutate state directly. So instead of setting `squares[0] = 'X'` you will
-need to make a copy of the array with the modifications, for example, using
-[`with`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/with):
-
-```tsx
-const newSquares = squares.with(index, 'X')
-```
-
-The emoji should guide you well! Enjoy the exercise!
+<callout-warning>
+	🚨 Note this exercise depends on `localStorage` and so the tests could
+	interfer with your work by changing the `localStorage` you're working with.
+</callout-warning>

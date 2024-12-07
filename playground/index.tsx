@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
 	calculateNextValue,
@@ -8,18 +8,31 @@ import {
 } from '#shared/tic-tac-toe-utils'
 
 const defaultState = Array(9).fill(null)
+const key = 'squares'
 
 function Board() {
-	const [squares, setSquares] = useState<Squares>(defaultState)
+	const [squares, setSquares] = useState<Squares>(() => {
+		const savedSquares = localStorage.getItem(key)
+		if (!savedSquares) return defaultState
+		try {
+			return JSON.parse(savedSquares)
+		} catch (error) {
+			console.error('Failed to parse saved squares:', error)
+			return defaultState
+		}
+	})
+
+	useEffect(() => {
+		localStorage.setItem(key, JSON.stringify(squares))
+	}, [squares])
+
 	const nextValue = calculateNextValue(squares)
 	const winner = calculateWinner(squares)
 	const status = calculateStatus(winner, squares, nextValue)
 
 	function selectSquare(index: number) {
 		if (winner || squares[index]) return
-		const nextSquares = squares.with(index, nextValue)
-		setSquares(nextSquares)
-		return nextSquares
+		setSquares(previousSquares => previousSquares.with(index, nextValue))
 	}
 
 	function restart() {
