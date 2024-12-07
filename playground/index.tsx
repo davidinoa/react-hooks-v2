@@ -4,44 +4,24 @@ import {
 	calculateNextValue,
 	calculateStatus,
 	calculateWinner,
+	isValidGameState,
+	type GameState,
 	type Squares,
 } from '#shared/tic-tac-toe-utils'
 
-const defaultState = Array(9).fill(null)
-const key = 'squares'
-
-function Board() {
-	const [squares, setSquares] = useState<Squares>(() => {
-		const savedSquares = localStorage.getItem(key)
-		if (!savedSquares) return defaultState
-		try {
-			return JSON.parse(savedSquares)
-		} catch (error) {
-			console.error('Failed to parse saved squares:', error)
-			return defaultState
-		}
-	})
-
-	useEffect(() => {
-		localStorage.setItem(key, JSON.stringify(squares))
-	}, [squares])
-
-	const nextValue = calculateNextValue(squares)
-	const winner = calculateWinner(squares)
-	const status = calculateStatus(winner, squares, nextValue)
-
-	function selectSquare(index: number) {
-		if (winner || squares[index]) return
-		setSquares(previousSquares => previousSquares.with(index, nextValue))
-	}
-
-	function restart() {
-		setSquares(defaultState)
-	}
-
+function Board({
+	squares,
+	onClick,
+}: {
+	squares: Squares
+	onClick: (index: number) => void
+}) {
 	function renderSquare(i: number) {
+		const value = squares[i]
+		const label = value ? `square ${i}, ${value}` : `square ${i} empty`
+
 		return (
-			<button className="square" onClick={() => selectSquare(i)}>
+			<button className="square" onClick={() => onClick(i)} aria-label={label}>
 				{squares[i]}
 			</button>
 		)
@@ -49,7 +29,6 @@ function Board() {
 
 	return (
 		<div>
-			<div className="status">{status}</div>
 			<div className="board-row">
 				{renderSquare(0)}
 				{renderSquare(1)}
@@ -65,18 +44,86 @@ function Board() {
 				{renderSquare(7)}
 				{renderSquare(8)}
 			</div>
-			<button className="restart" onClick={restart}>
-				restart
-			</button>
 		</div>
 	)
 }
 
+const defaultState: GameState = {
+	currentStep: 0,
+	history: [Array(9).fill(null)],
+}
+
+const localStorageKey = 'tic-tac-toe'
 function App() {
+	const [state, setState] = useState<GameState>(() => {
+		let localStorageValue
+		try {
+			localStorageValue = JSON.parse(
+				window.localStorage.getItem(localStorageKey) ?? 'null',
+			)
+		} catch {
+			return defaultState
+		}
+		return localStorageValue && isValidGameState(localStorageValue)
+			? localStorageValue
+			: defaultState
+	})
+
+	const currentSquares = state.history[state.currentStep]
+
+	const winner = calculateWinner(currentSquares)
+	const nextValue = calculateNextValue(currentSquares)
+	const status = calculateStatus(winner, currentSquares, nextValue)
+
+	useEffect(() => {
+		window.localStorage.setItem(localStorageKey, JSON.stringify(state))
+	}, [state])
+
+	function selectSquare(index: number) {
+		if (winner || currentSquares[index]) return
+		setState(previousState => {
+			const { currentStep, history } = previousState
+			const newHistory = history.slice(0, currentStep + 1)
+			const squares = history[currentStep].with(index, nextValue)
+			return {
+				currentStep: newHistory.length,
+				history: [...newHistory, squares],
+			}
+		})
+	}
+
+	function restart() {
+		setState(defaultState)
+	}
+
+	const moves = state.history.map((_squares, step) => {
+		const isCurrentStep = step === state.currentStep
+		const desc = step ? `Go to move #${step}` : 'Go to game start'
+		return (
+			<li key={step}>
+				<button
+					onClick={() =>
+						setState(previousState => ({ ...previousState, currentStep: step }))
+					}
+					disabled={isCurrentStep}
+				>
+					{desc} {isCurrentStep ? '(current)' : ''}
+				</button>
+			</li>
+		)
+	})
+
 	return (
 		<div className="game">
 			<div className="game-board">
-				<Board />
+				<Board onClick={selectSquare} squares={currentSquares} />
+				<button className="restart" onClick={restart}>
+					restart
+				</button>
+			</div>
+			<div className="game-info">
+				<div aria-live="polite">{status}</div>
+				<ol>{moves}</ol>
 			</div>
 		</div>
 	)
